@@ -28,8 +28,8 @@ class Memory(LoggingMixIn, Operations):
 
         server_count = server.list_nodes()
         self.server_cnt = len(server_count)
-        print "server count = ", self.server_cnt
-
+        print "server count = ", server_count
+        
         #create ('files')
         now = time()
         attrs = dict(st_mode=(S_IFDIR | 0755), st_ctime=now,
@@ -37,23 +37,23 @@ class Memory(LoggingMixIn, Operations):
 
         file_dict = dict([['/', attrs]])
         pick1 = pickle.dumps(file_dict)
-        server.put('1', Binary('files'), Binary(pick1), 3000)        
+        server.put('1', Binary('files'), Binary(pick1), 3000)   
 
         #create ('data')
         '''for i in range(0, self.server_cnt):
-                self.d_val = defaultdict(str)
-                pick_dict = pickle.dumps(self.d_val)
-                j = md5(str(randint(1, 100000)))
-                j = j.hexdigest()
-                jj = str(int(j,16))
-                server.put(jj, Binary('data'), Binary(pick_dict), 3000)
+            self.d_val = defaultdict(str)
+            pick_dict = pickle.dumps(self.d_val)
+            j = md5(str(randint(1, 100000)))
+            j = j.hexdigest()
+            jj = str(int(j,16))
+            server.put(jj, Binary('data'), Binary(pick_dict), 3000)
         '''
         self.d_val = defaultdict(str)
         pick_dict = pickle.dumps(self.d_val)
         server.put('20', Binary('data'), Binary(pick_dict), 3000)
 
         #create ('fd')
-        self.fd = 0
+        self.fd = 0     
         fd = str(self.fd)
         #fd_val = defaultdict(int)
         pick_fd = pickle.dumps(fd)
@@ -68,11 +68,13 @@ class Memory(LoggingMixIn, Operations):
         #print 'm = ', m
         m_hex = m.hexdigest()
         #m_hex = m_hex[0:2]
-        #print "m_hex = ", m_hex
-        #print 'm_hex type = ', type(m_hex)
-        x = int(m_hex, 16)
-        x = str(x)
-        x = x[0:32]     
+        print "m_hex = ", m_hex
+        print 'm_hex type = ', type(m_hex)
+        x=m_hex
+        #x = int(m_hex, 16)
+        #x = str(x)
+        print 'x = ', x
+        #x = x[0:36]  
         print 'x = ', x
         #print 'x type = ', type(x)
         #server_num = x % self.server_cnt
@@ -83,10 +85,10 @@ class Memory(LoggingMixIn, Operations):
         #self.files[path]['st_mode'] &= 0770000
         files = self.getRemote('1', 'files')
         files[path]['st_mode'] &= 0770000
-        
+    
         #self.files[path]['st_mode'] |= mode
         files[path]['st_mode'] |= mode
-        
+    
         #self.setRemote('files', files, self.ttl)
         pick = pickle.dumps(files)
         server.put('1', Binary('files'), Binary(pick), self.ttl)
@@ -111,8 +113,8 @@ class Memory(LoggingMixIn, Operations):
         #self.setRemote('files', files, self.ttl)
         pick = pickle.dumps(files)
         server.put('1', Binary('files'), Binary(pick), self.ttl)
-        
-        
+    
+    
         fd = self.getRemote('1', 'fd')
         fd = int(fd)
         fd += 1
@@ -185,8 +187,8 @@ class Memory(LoggingMixIn, Operations):
                 returned_dict = pickle.loads(e)
                 value_field = returned_dict[newpath]
                 data_dump = data_dump + value_field[:]
-                int_i = int(i)     #str to int, increment, then back
-                int_i = int_i + 1      #for concat w/pathname
+                int_i = int(i)  #str to int, increment, then back
+                int_i = int_i + 1   #for concat w/pathname
                 i = str(int_i)
         var[path] = data_dump
         #print 'var type = ', type(var)
@@ -228,7 +230,7 @@ class Memory(LoggingMixIn, Operations):
         #return self.data[path][offset:offset + size]
         data_ = self.getdataRemote(path)
         return data_[path][offset:offset + size]
-        
+    
     def readdir(self, path, fh):
         files = self.getRemote('1', 'files')
         return ['.', '..'] + [x[1:] for x in files if x != '/']
@@ -251,7 +253,7 @@ class Memory(LoggingMixIn, Operations):
 
     def rename(self, old, new):
         files = self.getRemote('1', 'files')
-        print files  #test
+        print files #test
         files[new] = files.pop(old)
         #self.setRemote('files', files, self.ttl)    
         pick = pickle.dumps(files)
@@ -328,6 +330,7 @@ class Memory(LoggingMixIn, Operations):
             for d in range(0,(bnts_int -1)):
                 print 'inside for loop, d = ', d
                 newpath = path + i
+                #create new dic here
                 print 'newpath = ', newpath
                 data_dump = out_[(1008*n):(1008*n+1008)]
                 print 'else data_dump = ', data_dump
@@ -336,17 +339,17 @@ class Memory(LoggingMixIn, Operations):
                 pick = pickle.dumps(data_)
                 server.put(node_id, Binary('data'), Binary(pick), self.ttl)
                 #fd_local = self.create(newpath, "rw")
-                 
+            
                 int_i = int(i)  #str to int, increment, then back
                 int_i = int_i + 1       #for concat w/pathname
                 i = str(int_i)
 
-        #server.put(Binary('key'), d, ttl)
-        #print "setting key = " + key
-        #print "and value = " + value
-        #print "valuetype = " + type(value)
-        #pickled_dict = pickle.dumps(value)
-        #server.put(Binary(key),Binary(pickled_dict), ttl)
+    #server.put(Binary('key'), d, ttl)
+    #print "setting key = " + key
+    #print "and value = " + value
+    #print "valuetype = " + type(value)
+    #pickled_dict = pickle.dumps(value)
+    #server.put(Binary(key),Binary(pickled_dict), ttl)
         return True
 
     def setxattr(self, path, name, value, options, position=0):
@@ -368,7 +371,7 @@ class Memory(LoggingMixIn, Operations):
         #self.setRemote('files', files, self.ttl)
         pick = pickle.dumps(files)
         server.put('1', Binary('files'), Binary(pick), self.ttl)
-        
+    
         data_ = self.getdataRemote(target) 
         data_[target] = source
         self.setdataRemote(target, data_, self.ttl)
@@ -396,7 +399,7 @@ class Memory(LoggingMixIn, Operations):
         pick = pickle.dumps(files)
         server.put('1', Binary('files'), Binary(pick), self.ttl)
         print 'END TRUNCATE()'
-
+    
     def unlink(self, path):
         files = self.getRemote('1', 'files')
         files.pop(path)
@@ -424,15 +427,15 @@ class Memory(LoggingMixIn, Operations):
         if not offset:
             print 'in not offset'
             self.buf = data
-            print 'buf = ', self.buf
+        #     print 'buf = ', self.buf
         if offset:
-            print 'in offset'
+        #     print 'in offset'
             self.buf = self.buf + data
-            print 'buf = ', self.buf
-        print 'data to write to file = ', data
+        #     print 'buf = ', self.buf
+        # print 'data to write to file = ', data
         #data_ = self.getdataRemote(path)
         #with open(path) as output:
-            #data_ = self.getdataRemote(path)
+        #data_ = self.getdataRemote(path)
         #buf = data_[path].read(1024)
         #print 'buf = ', buf
         print 'returning to WRITE() from getdataRemote'
@@ -448,6 +451,7 @@ class Memory(LoggingMixIn, Operations):
         print 'getRemote files in WRITE()'
         files = self.getRemote('1', 'files')
         files[path]['st_size'] = len(data_[path])
+        #print 'size maybe=', files[path]['st_size']
         #self.setRemote('files', files, self.ttl)
         pick = pickle.dumps(files)
         server.put('1', Binary('files'), Binary(pick), self.ttl)
@@ -459,4 +463,3 @@ if __name__ == "__main__":
         print 'usage: %s <mountpoint>' % argv[0]
         exit(1)
     fuse = FUSE(Memory(), argv[1], foreground=True)
-
